@@ -1,0 +1,237 @@
+{
+  "info": {
+    "_postman_id": "bd3-api-collection",
+    "name": "BD3 Eyewear API",
+    "description": "Storefront + admin endpoints for the BD3 Laravel backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000/api" },
+    { "key": "adminToken", "value": "" },
+    { "key": "cartId", "value": "" },
+    { "key": "productSlug", "value": "axiom-midnight" }
+  ],
+  "item": [
+    {
+      "name": "Storefront",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health"
+          }
+        },
+        {
+          "name": "Catalog filters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/catalog"
+          }
+        },
+        {
+          "name": "List products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?shape=aviator&sort=price-asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [
+                { "key": "shape", "value": "aviator" },
+                { "key": "series", "value": "axiom", "disabled": true },
+                { "key": "lens", "value": "polarized", "disabled": true },
+                { "key": "min", "value": "800", "disabled": true },
+                { "key": "max", "value": "1000", "disabled": true },
+                { "key": "sort", "value": "price-asc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/products/{{productSlug}}"
+          }
+        },
+        {
+          "name": "Product gallery",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productSlug}}/gallery?color=black",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "{{productSlug}}", "gallery"],
+              "query": [{ "key": "color", "value": "black" }]
+            }
+          }
+        },
+        {
+          "name": "Product copy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/products/{{productSlug}}/copy"
+          }
+        },
+        {
+          "name": "Add cart item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.cartId) pm.collectionVariables.set('cartId', json.cartId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"axiom-midnight\",\n  \"colorId\": \"black\",\n  \"quantity\": 1,\n  \"cartId\": \"{{cartId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/cart/items"
+          }
+        },
+        {
+          "name": "Get cart",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/cart/{{cartId}}"
+          }
+        },
+        {
+          "name": "Checkout pay (stub)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cartId\": \"{{cartId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/checkout/pay"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) pm.collectionVariables.set('adminToken', json.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@bd3.ae\",\n  \"password\": \"bd3-admin-2026\"\n}"
+            },
+            "url": "{{baseUrl}}/admin/login"
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/me"
+          }
+        },
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/dashboard"
+          }
+        },
+        {
+          "name": "List products",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/products"
+          }
+        },
+        {
+          "name": "Create product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slug\": \"test-frame\",\n  \"name\": \"Test Frame\",\n  \"price\": 799,\n  \"shape\": \"aviator\",\n  \"series\": \"axiom\",\n  \"lens\": \"polarized\",\n  \"image\": \"/images/products/swatch-aviator-black.webp\",\n  \"rating\": 4.5,\n  \"reviews\": 0,\n  \"isNew\": true,\n  \"createdAt\": \"2026-08-01\",\n  \"colors\": [\n    { \"id\": \"black\", \"image\": \"/images/products/swatch-aviator-black.webp\" },\n    { \"id\": \"steel\", \"image\": \"/images/products/swatch-aviator-steel.webp\" }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/admin/products"
+          }
+        },
+        {
+          "name": "Update product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slug\": \"{{productSlug}}\",\n  \"name\": \"Axiom Midnight\",\n  \"price\": 890,\n  \"shape\": \"aviator\",\n  \"series\": \"axiom\",\n  \"lens\": \"polarized\",\n  \"image\": \"/images/products/swatch-aviator-black.webp\",\n  \"rating\": 4.9,\n  \"reviews\": 42,\n  \"isNew\": true,\n  \"createdAt\": \"2026-06-01\",\n  \"colors\": [\n    { \"id\": \"black\", \"image\": \"/images/products/swatch-aviator-black.webp\" },\n    { \"id\": \"steel\", \"image\": \"/images/products/swatch-aviator-steel.webp\" },\n    { \"id\": \"powder\", \"image\": \"/images/products/swatch-aviator-powder.webp\" }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/admin/products/{{productSlug}}"
+          }
+        },
+        {
+          "name": "Delete product",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/products/test-frame"
+          }
+        },
+        {
+          "name": "List colors",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/colors"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/logout"
+          }
+        }
+      ]
+    }
+  ]
+}
