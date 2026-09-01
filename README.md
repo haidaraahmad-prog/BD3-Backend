@@ -43,7 +43,22 @@ API base URL: `http://localhost:8000/api`
 | GET | `/api/products/{slug}/copy` | Tagline, description, specs |
 | POST | `/api/cart/items` | Add/update cart line (`productId`, `colorId`, `quantity`, optional `cartId`) |
 | GET | `/api/cart/{cartId}` | Cart summary |
-| POST | `/api/checkout/pay` | Checkout stub (`cartId`) |
+| POST | `/api/checkout/pay` | Checkout stub (`cartId` optional when authenticated) |
+
+### Customer auth (Sanctum)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/register` | Register customer (`name`, `email`, `password`, `password_confirmation`) |
+| POST | `/api/login` | Login — returns `token`, `user`, `cartId` |
+| GET | `/api/me` | Current customer profile + `cartId` (Bearer token) |
+| POST | `/api/logout` | Revoke token (Bearer token) |
+| GET | `/api/cart` | Authenticated user's cart (Bearer token) |
+| GET | `/api/favourites` | List favourited products (Bearer token) |
+| POST | `/api/favourites` | Add favourite `{ "productId": "slug" }` (Bearer token) |
+| DELETE | `/api/favourites/{slug}` | Remove favourite (Bearer token) |
+
+Guest and user carts are **separate** — logging in does not merge a guest `cartId` into the user cart.
 
 ### Product JSON shape
 
@@ -94,7 +109,9 @@ Import:
 - `postman/BD3-API.postman_collection.json`
 - `postman/BD3-Local.postman_environment.json`
 
-Run **Admin → Login** first; the collection saves `adminToken` automatically.
+Run **Customer Auth → Register** or **Login** first for storefront auth; the collection saves `customerToken` and `cartId` automatically.
+
+Run **Admin → Login** for admin API access; the collection saves `adminToken` automatically.
 
 ## Frontend integration
 

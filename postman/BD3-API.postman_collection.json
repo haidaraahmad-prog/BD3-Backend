@@ -8,6 +8,7 @@
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:8000/api" },
     { "key": "adminToken", "value": "" },
+    { "key": "customerToken", "value": "" },
     { "key": "cartId", "value": "" },
     { "key": "productSlug", "value": "axiom-midnight" },
     { "key": "colorId", "value": "black" }
@@ -82,7 +83,7 @@
           }
         },
         {
-          "name": "Add cart item",
+          "name": "Add cart item (guest)",
           "event": [
             {
               "listen": "test",
@@ -106,7 +107,30 @@
           }
         },
         {
-          "name": "Get cart",
+          "name": "Add cart item (authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"axiom-midnight\",\n  \"colorId\": \"black\",\n  \"quantity\": 1\n}"
+            },
+            "url": "{{baseUrl}}/cart/items"
+          }
+        },
+        {
+          "name": "Get my cart (authenticated)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": "{{baseUrl}}/cart"
+          }
+        },
+        {
+          "name": "Get cart (guest by cartId)",
           "request": {
             "method": "GET",
             "header": [],
@@ -114,7 +138,7 @@
           }
         },
         {
-          "name": "Checkout pay (stub)",
+          "name": "Checkout pay (guest stub)",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
@@ -123,6 +147,121 @@
               "raw": "{\n  \"cartId\": \"{{cartId}}\"\n}"
             },
             "url": "{{baseUrl}}/checkout/pay"
+          }
+        },
+        {
+          "name": "Checkout pay (authenticated stub)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": "{{baseUrl}}/checkout/pay"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) pm.collectionVariables.set('customerToken', json.token);",
+                  "if (json.cartId) pm.collectionVariables.set('cartId', json.cartId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Shopper\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}"
+            },
+            "url": "{{baseUrl}}/register"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) pm.collectionVariables.set('customerToken', json.token);",
+                  "if (json.cartId) pm.collectionVariables.set('cartId', json.cartId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "{{baseUrl}}/login"
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": "{{baseUrl}}/me"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": "{{baseUrl}}/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Favourites",
+      "item": [
+        {
+          "name": "List favourites",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": "{{baseUrl}}/favourites"
+          }
+        },
+        {
+          "name": "Add favourite",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productSlug}}\"\n}"
+            },
+            "url": "{{baseUrl}}/favourites"
+          }
+        },
+        {
+          "name": "Remove favourite",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": "{{baseUrl}}/favourites/{{productSlug}}"
           }
         }
       ]

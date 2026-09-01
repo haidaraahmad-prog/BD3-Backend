@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -12,7 +13,7 @@ class Cart extends Model
 
     protected $keyType = 'string';
 
-    protected $fillable = ['id'];
+    protected $fillable = ['id', 'user_id'];
 
     protected static function booted(): void
     {
@@ -21,6 +22,11 @@ class Cart extends Model
                 $cart->id = (string) Str::uuid();
             }
         });
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function items(): HasMany

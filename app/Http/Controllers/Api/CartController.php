@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Support\CartResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
+    public function __construct(private CartResolver $cartResolver) {}
+
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -26,9 +29,7 @@ class CartController extends Controller
             return response()->json(['message' => 'Color not available for this product.'], 422);
         }
 
-        $cart = isset($validated['cartId'])
-            ? Cart::query()->findOrFail($validated['cartId'])
-            : Cart::query()->create([]);
+        $cart = $this->cartResolver->resolveForStore($request, $validated['cartId'] ?? null);
 
         $item = CartItem::query()->updateOrCreate(
             [
@@ -50,7 +51,15 @@ class CartController extends Controller
         ], 201);
     }
 
-    public function show(string $cartId): JsonResponse
+    public function mine(Request $request): JsonResponse
+    {
+        $cart = $this->cartResolver->resolveForUser($request->user());
+        $cart->load(['items.product', 'items.color']);
+
+        return response()->json($this->formatCart($cart));
+    }
+
+    public function show(Request $request, string $cartId): JsonResponse
     {
         $cart = Cart::query()->with(['items.product', 'items.color'])->find($cartId);
 
@@ -58,7 +67,16 @@ class CartController extends Controller
             return response()->json(['message' => 'Cart not found.'], 404);
         }
 
-        return response()->json([
+        if (! $this->cartResolver->canAccess($request, $cart)) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        return response()->json($this->formatCart($cart));
+    }
+
+    private function formatCart(Cart $cart): array
+    {
+        return [
             'id' => $cart->id,
             'items' => $cart->items->map(fn (CartItem $item) => [
                 'id' => $item->id,
@@ -71,6 +89,6 @@ class CartController extends Controller
                 'lineTotal' => $item->product->price * $item->quantity,
             ]),
             'subtotal' => $cart->items->sum(fn (CartItem $item) => $item->product->price * $item->quantity),
-        ]);
+        ];
     }
 }
