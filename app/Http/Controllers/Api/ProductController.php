@@ -14,11 +14,14 @@ class ProductController extends Controller
 {
     public function index(Request $request): AnonymousResourceCollection
     {
+        $perPage = min(max($request->integer('per_page', 9), 1), 24);
+
         $products = Product::query()
             ->with('colors')
             ->filter($request->only(['shape', 'series', 'lens', 'min', 'max']))
             ->sort($request->query('sort'))
-            ->get();
+            ->paginate($perPage)
+            ->withQueryString();
 
         return ProductResource::collection($products);
     }
