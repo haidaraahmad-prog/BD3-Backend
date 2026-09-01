@@ -17,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
         ]);
 
+        $middleware->redirectGuestsTo(fn () => route('admin.login'));
+
         $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {

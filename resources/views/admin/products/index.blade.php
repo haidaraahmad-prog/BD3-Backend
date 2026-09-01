@@ -32,7 +32,7 @@
                         <td class="admin-muted">{{ $product->slug }}</td>
                         <td>{{ ucfirst($product->shape) }}</td>
                         <td>{{ ucfirst($product->series) }}</td>
-                        <td>${{ $product->price }}</td>
+                        <td>{{ number_format($product->price) }} AED</td>
                         <td>{{ $product->is_new ? 'Yes' : '—' }}</td>
                         <td class="admin-actions">
                             <a href="{{ route('admin.products.edit', $product->slug) }}" class="admin-btn admin-btn--sm">Edit</a>

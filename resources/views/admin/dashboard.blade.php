@@ -56,7 +56,7 @@
                             <a href="{{ route('admin.products.edit', $product->slug) }}">{{ $product->name }}</a>
                         </td>
                         <td class="admin-muted">{{ $product->slug }}</td>
-                        <td>${{ $product->price }}</td>
+                        <td>{{ number_format($product->price) }} AED</td>
                         <td class="admin-muted">{{ $product->released_at->format('Y-m-d') }}</td>
                         <td>
                             @if ($product->is_new)

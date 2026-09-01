@@ -9,7 +9,8 @@
     { "key": "baseUrl", "value": "http://localhost:8000/api" },
     { "key": "adminToken", "value": "" },
     { "key": "cartId", "value": "" },
-    { "key": "productSlug", "value": "axiom-midnight" }
+    { "key": "productSlug", "value": "axiom-midnight" },
+    { "key": "colorId", "value": "black" }
   ],
   "item": [
     {
@@ -178,6 +179,14 @@
           }
         },
         {
+          "name": "Get product",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/products/{{productSlug}}"
+          }
+        },
+        {
           "name": "Create product",
           "request": {
             "method": "POST",
@@ -221,6 +230,44 @@
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
             "url": "{{baseUrl}}/admin/colors"
+          }
+        },
+        {
+          "name": "Create color",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"test-color\",\n  \"label\": \"Test Color\",\n  \"hex\": \"#FF5500\"\n}"
+            },
+            "url": "{{baseUrl}}/admin/colors"
+          }
+        },
+        {
+          "name": "Update color",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Black\",\n  \"hex\": \"#1A1A1A\"\n}"
+            },
+            "url": "{{baseUrl}}/admin/colors/{{colorId}}"
+          }
+        },
+        {
+          "name": "Delete color",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/colors/test-color"
           }
         },
         {
