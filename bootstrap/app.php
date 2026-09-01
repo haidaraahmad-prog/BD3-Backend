@@ -19,7 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->redirectGuestsTo(fn () => route('admin.login'));
 
-        $middleware->statefulApi();
+        // Bearer-token API auth only; do not enable statefulApi() or SPA requests
+        // from localhost:5173 will require CSRF cookies on POST /api/* routes.
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
