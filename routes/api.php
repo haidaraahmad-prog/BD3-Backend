@@ -43,6 +43,8 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/cart/{cartId}', [CartController::class, 'show']);
 
 Route::post('/checkout/pay', [CheckoutController::class, 'pay']);
+Route::get('/checkout/orders/{reference}', [CheckoutController::class, 'show']);
+Route::post('/webhooks/checkout', [CheckoutController::class, 'webhook']);
 
 Route::prefix('admin')->group(function () {
     Route::post('/login', [AdminAuthController::class, 'login']);

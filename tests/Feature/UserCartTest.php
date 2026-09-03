@@ -6,6 +6,7 @@ use App\Models\Cart;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -93,6 +94,20 @@ class UserCartTest extends TestCase
 
     public function test_authenticated_checkout_uses_user_cart_without_cart_id(): void
     {
+        Http::fake([
+            'api.sandbox.checkout.com/hosted-payments' => Http::response([
+                'id' => 'hpp_stub',
+                '_links' => [
+                    'redirect' => ['href' => 'https://pay.sandbox.checkout.com/page/hpp_stub'],
+                ],
+            ], 201),
+        ]);
+
+        config([
+            'checkout.secret_key' => 'sk_sbox_test',
+            'checkout.api_url' => 'https://api.sandbox.checkout.com',
+        ]);
+
         $user = User::factory()->customer()->create();
         Sanctum::actingAs($user);
 
@@ -103,7 +118,8 @@ class UserCartTest extends TestCase
         ])->assertCreated();
 
         $this->postJson('/api/checkout/pay', [])
-            ->assertAccepted()
-            ->assertJsonPath('order.itemCount', 1);
+            ->assertCreated()
+            ->assertJsonPath('order.itemCount', 1)
+            ->assertJsonStructure(['checkoutUrl', 'order']);
     }
 }
