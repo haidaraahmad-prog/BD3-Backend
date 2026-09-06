@@ -17,7 +17,6 @@ class CartController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'cartId' => ['nullable', 'uuid', 'exists:carts,id'],
             'productId' => ['required', 'string', 'exists:products,slug'],
             'colorId' => ['required', 'string', 'exists:colors,id'],
             'quantity' => ['required', 'integer', 'min:1', 'max:9'],
@@ -29,7 +28,7 @@ class CartController extends Controller
             return response()->json(['message' => 'Color not available for this product.'], 422);
         }
 
-        $cart = $this->cartResolver->resolveForStore($request, $validated['cartId'] ?? null);
+        $cart = $this->cartResolver->resolveForUser($request->user());
 
         $item = CartItem::query()->updateOrCreate(
             [
@@ -40,14 +39,18 @@ class CartController extends Controller
             ['quantity' => $validated['quantity']],
         );
 
+        $cart->load(['items.product', 'items.color']);
+
         return response()->json([
             'cartId' => $cart->id,
+            'itemCount' => $cart->items->sum('quantity'),
             'item' => [
                 'id' => $item->id,
                 'productId' => $item->product_slug,
                 'colorId' => $item->color_id,
                 'quantity' => $item->quantity,
             ],
+            'cart' => $this->formatCart($cart),
         ], 201);
     }
 
@@ -59,25 +62,12 @@ class CartController extends Controller
         return response()->json($this->formatCart($cart));
     }
 
-    public function show(Request $request, string $cartId): JsonResponse
-    {
-        $cart = Cart::query()->with(['items.product', 'items.color'])->find($cartId);
-
-        if (! $cart) {
-            return response()->json(['message' => 'Cart not found.'], 404);
-        }
-
-        if (! $this->cartResolver->canAccess($request, $cart)) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
-        }
-
-        return response()->json($this->formatCart($cart));
-    }
-
+    /** @return array<string, mixed> */
     private function formatCart(Cart $cart): array
     {
         return [
             'id' => $cart->id,
+            'itemCount' => $cart->items->sum('quantity'),
             'items' => $cart->items->map(fn (CartItem $item) => [
                 'id' => $item->id,
                 'productId' => $item->product_slug,

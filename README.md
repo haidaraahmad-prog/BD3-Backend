@@ -41,9 +41,9 @@ API base URL: `http://localhost:8000/api`
 | GET | `/api/products/{slug}` | Single product |
 | GET | `/api/products/{slug}/gallery?color=black` | PDP gallery images for a color |
 | GET | `/api/products/{slug}/copy` | Tagline, description, specs |
-| POST | `/api/cart/items` | Add/update cart line (`productId`, `colorId`, `quantity`, optional `cartId`) |
-| GET | `/api/cart/{cartId}` | Cart summary |
-| POST | `/api/checkout/pay` | Checkout stub (`cartId` optional when authenticated) |
+| POST | `/api/cart/items` | Add/update cart line (**auth required**) |
+| GET | `/api/cart` | Current user cart (**auth required**) |
+| POST | `/api/checkout/pay` | Start Checkout.com payment (**auth required**) |
 
 ### Customer auth (Sanctum)
 

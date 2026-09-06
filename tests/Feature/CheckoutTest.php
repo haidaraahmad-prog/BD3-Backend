@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Cart;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,6 +25,11 @@ class CheckoutTest extends TestCase
         ]);
     }
 
+    public function test_guest_cannot_checkout(): void
+    {
+        $this->postJson('/api/checkout/pay', [])->assertUnauthorized();
+    }
+
     public function test_checkout_creates_order_and_returns_payment_url(): void
     {
         Http::fake([
@@ -37,22 +41,27 @@ class CheckoutTest extends TestCase
             ], 201),
         ]);
 
-        $cartResponse = $this->postJson('/api/cart/items', [
+        $user = User::factory()->customer()->create();
+        Sanctum::actingAs($user);
+
+        $this->postJson('/api/cart/items', [
             'productId' => 'axiom-midnight',
             'colorId' => 'black',
             'quantity' => 1,
         ])->assertCreated();
 
-        $cartId = $cartResponse->json('cartId');
-
-        $response = $this->postJson('/api/checkout/pay', ['cartId' => $cartId])
+        $response = $this->postJson('/api/checkout/pay', [])
             ->assertCreated()
             ->assertJsonPath('checkoutUrl', 'https://pay.sandbox.checkout.com/page/hpp_test123')
             ->assertJsonPath('order.status', 'pending')
             ->assertJsonPath('order.currency', 'AED');
 
         $reference = $response->json('order.reference');
-        $this->assertDatabaseHas('orders', ['reference' => $reference, 'status' => 'pending']);
+        $this->assertDatabaseHas('orders', [
+            'reference' => $reference,
+            'status' => 'pending',
+            'user_id' => $user->id,
+        ]);
     }
 
     public function test_webhook_marks_order_paid_and_clears_cart(): void
@@ -66,6 +75,9 @@ class CheckoutTest extends TestCase
             ], 201),
         ]);
 
+        $user = User::factory()->customer()->create();
+        Sanctum::actingAs($user);
+
         $cartResponse = $this->postJson('/api/cart/items', [
             'productId' => 'axiom-midnight',
             'colorId' => 'black',
@@ -74,7 +86,7 @@ class CheckoutTest extends TestCase
 
         $cartId = $cartResponse->json('cartId');
 
-        $checkout = $this->postJson('/api/checkout/pay', ['cartId' => $cartId])->assertCreated();
+        $checkout = $this->postJson('/api/checkout/pay', [])->assertCreated();
         $reference = $checkout->json('order.reference');
 
         $payload = json_encode([
@@ -102,14 +114,16 @@ class CheckoutTest extends TestCase
     {
         config(['checkout.secret_key' => null]);
 
-        $cartResponse = $this->postJson('/api/cart/items', [
+        $user = User::factory()->customer()->create();
+        Sanctum::actingAs($user);
+
+        $this->postJson('/api/cart/items', [
             'productId' => 'axiom-midnight',
             'colorId' => 'black',
             'quantity' => 1,
         ])->assertCreated();
 
-        $this->postJson('/api/checkout/pay', ['cartId' => $cartResponse->json('cartId')])
-            ->assertStatus(503);
+        $this->postJson('/api/checkout/pay', [])->assertStatus(503);
     }
 
     public function test_authenticated_checkout_uses_user_cart(): void

@@ -83,7 +83,7 @@
           }
         },
         {
-          "name": "Add cart item (guest)",
+          "name": "Add cart item",
           "event": [
             {
               "listen": "test",
@@ -98,18 +98,6 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"productId\": \"axiom-midnight\",\n  \"colorId\": \"black\",\n  \"quantity\": 1,\n  \"cartId\": \"{{cartId}}\"\n}"
-            },
-            "url": "{{baseUrl}}/cart/items"
-          }
-        },
-        {
-          "name": "Add cart item (authenticated)",
-          "request": {
-            "method": "POST",
             "header": [
               { "key": "Authorization", "value": "Bearer {{customerToken}}" },
               { "key": "Content-Type", "value": "application/json" }
@@ -122,7 +110,7 @@
           }
         },
         {
-          "name": "Get my cart (authenticated)",
+          "name": "Get my cart",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
@@ -130,30 +118,17 @@
           }
         },
         {
-          "name": "Get cart (guest by cartId)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/cart/{{cartId}}"
-          }
-        },
-        {
-          "name": "Checkout pay (guest stub)",
+          "name": "Checkout pay",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"cartId\": \"{{cartId}}\"\n}"
+              "raw": "{}"
             },
-            "url": "{{baseUrl}}/checkout/pay"
-          }
-        },
-        {
-          "name": "Checkout pay (authenticated stub)",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
             "url": "{{baseUrl}}/checkout/pay"
           }
         }

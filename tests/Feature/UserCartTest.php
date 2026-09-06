@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Cart;
 use App\Models\User;
 use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,6 +19,15 @@ class UserCartTest extends TestCase
         $this->seed(CatalogSeeder::class);
     }
 
+    public function test_guest_cannot_add_to_cart(): void
+    {
+        $this->postJson('/api/cart/items', [
+            'productId' => 'axiom-midnight',
+            'colorId' => 'black',
+            'quantity' => 1,
+        ])->assertUnauthorized();
+    }
+
     public function test_authenticated_user_gets_own_cart_on_add(): void
     {
         $user = User::factory()->customer()->create();
@@ -32,7 +40,8 @@ class UserCartTest extends TestCase
         ]);
 
         $response->assertCreated()
-            ->assertJsonPath('item.productId', 'axiom-midnight');
+            ->assertJsonPath('item.productId', 'axiom-midnight')
+            ->assertJsonPath('itemCount', 2);
 
         $cartId = $response->json('cartId');
 
@@ -44,52 +53,13 @@ class UserCartTest extends TestCase
         $this->getJson('/api/cart')
             ->assertOk()
             ->assertJsonPath('id', $cartId)
+            ->assertJsonPath('itemCount', 2)
             ->assertJsonCount(1, 'items');
     }
 
-    public function test_guest_cart_is_separate_from_user_cart(): void
+    public function test_guest_cannot_view_cart(): void
     {
-        $guestResponse = $this->postJson('/api/cart/items', [
-            'productId' => 'axiom-midnight',
-            'colorId' => 'black',
-            'quantity' => 1,
-        ]);
-
-        $guestCartId = $guestResponse->json('cartId');
-
-        $user = User::factory()->customer()->create();
-        Sanctum::actingAs($user);
-
-        $userResponse = $this->postJson('/api/cart/items', [
-            'productId' => 'axiom-midnight',
-            'colorId' => 'steel',
-            'quantity' => 1,
-        ]);
-
-        $userCartId = $userResponse->json('cartId');
-
-        $this->assertNotSame($guestCartId, $userCartId);
-
-        $this->getJson('/api/cart/'.$guestCartId)
-            ->assertOk()
-            ->assertJsonCount(1, 'items');
-
-        $this->getJson('/api/cart')
-            ->assertOk()
-            ->assertJsonPath('id', $userCartId)
-            ->assertJsonCount(1, 'items');
-    }
-
-    public function test_user_cannot_access_another_users_cart(): void
-    {
-        $owner = User::factory()->customer()->create();
-        $cart = Cart::query()->create(['user_id' => $owner->id]);
-
-        $other = User::factory()->customer()->create();
-        Sanctum::actingAs($other);
-
-        $this->getJson('/api/cart/'.$cart->id)
-            ->assertForbidden();
+        $this->getJson('/api/cart')->assertUnauthorized();
     }
 
     public function test_authenticated_checkout_uses_user_cart_without_cart_id(): void

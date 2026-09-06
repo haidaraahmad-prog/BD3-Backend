@@ -27,24 +27,22 @@ Route::get('/products/{slug}', [ProductController::class, 'show']);
 Route::get('/products/{slug}/gallery', [ProductController::class, 'gallery']);
 Route::get('/products/{slug}/copy', [ProductController::class, 'copy']);
 
-Route::post('/cart/items', [CartController::class, 'store']);
+Route::get('/checkout/orders/{reference}', [CheckoutController::class, 'show']);
+Route::post('/webhooks/checkout', [CheckoutController::class, 'webhook']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/cart', [CartController::class, 'mine']);
+    Route::post('/cart/items', [CartController::class, 'store']);
+
+    Route::post('/checkout/pay', [CheckoutController::class, 'pay']);
 
     Route::get('/favourites', [FavouriteController::class, 'index']);
     Route::post('/favourites', [FavouriteController::class, 'store']);
     Route::delete('/favourites/{productSlug}', [FavouriteController::class, 'destroy']);
 });
-
-Route::get('/cart/{cartId}', [CartController::class, 'show']);
-
-Route::post('/checkout/pay', [CheckoutController::class, 'pay']);
-Route::get('/checkout/orders/{reference}', [CheckoutController::class, 'show']);
-Route::post('/webhooks/checkout', [CheckoutController::class, 'webhook']);
 
 Route::prefix('admin')->group(function () {
     Route::post('/login', [AdminAuthController::class, 'login']);
