@@ -118,6 +118,14 @@
           }
         },
         {
+          "name": "Remove cart item",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": "{{baseUrl}}/cart/items/1"
+          }
+        },
+        {
           "name": "Checkout pay",
           "request": {
             "method": "POST",

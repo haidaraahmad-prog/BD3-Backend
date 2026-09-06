@@ -43,6 +43,7 @@ API base URL: `http://localhost:8000/api`
 | GET | `/api/products/{slug}/copy` | Tagline, description, specs |
 | POST | `/api/cart/items` | Add/update cart line (**auth required**) |
 | GET | `/api/cart` | Current user cart (**auth required**) |
+| DELETE | `/api/cart/items/{itemId}` | Remove cart line (**auth required**) |
 | POST | `/api/checkout/pay` | Start Checkout.com payment (**auth required**) |
 
 ### Customer auth (Sanctum)

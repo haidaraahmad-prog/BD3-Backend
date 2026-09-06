@@ -62,6 +62,26 @@ class CartController extends Controller
         return response()->json($this->formatCart($cart));
     }
 
+    public function destroy(Request $request, int $itemId): JsonResponse
+    {
+        $cart = $this->cartResolver->resolveForUser($request->user());
+
+        $item = CartItem::query()
+            ->where('cart_id', $cart->id)
+            ->where('id', $itemId)
+            ->first();
+
+        if (! $item) {
+            return response()->json(['message' => 'Cart item not found.'], 404);
+        }
+
+        $item->delete();
+
+        $cart->load(['items.product', 'items.color']);
+
+        return response()->json($this->formatCart($cart));
+    }
+
     /** @return array<string, mixed> */
     private function formatCart(Cart $cart): array
     {
